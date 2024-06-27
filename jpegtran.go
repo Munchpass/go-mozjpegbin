@@ -3,8 +3,9 @@ package mozjpegbin
 import (
 	"errors"
 	"fmt"
-	"github.com/nickalie/go-binwrapper"
 	"io"
+
+	"github.com/nickalie/go-binwrapper"
 )
 
 type cropInfo struct {
@@ -30,12 +31,12 @@ type JpegTran struct {
 // NewJpegTran creates new JpegTran instance
 func NewJpegTran() *JpegTran {
 	bin := &JpegTran{
-		BinWrapper: createBinWrapper(),
+		BinWrapper: createBinWrapper("jpegtran"),
 		copy:       "none",
 		optimize:   true,
 	}
 
-	bin.ExecPath("jpegtran")
+	// bin.ExecPath("jpegtran")
 	return bin
 }
 

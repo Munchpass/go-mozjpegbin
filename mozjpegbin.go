@@ -2,19 +2,21 @@ package mozjpegbin
 
 import (
 	"bytes"
-	"github.com/nickalie/go-binwrapper"
+	"fmt"
 	"image"
 	"image/jpeg"
 	"io"
 	"runtime"
 	"strings"
+
+	"github.com/nickalie/go-binwrapper"
 )
 
 var skipDownload bool
 var dest = "vendor/mozjpeg"
 
 func init() {
-	if runtime.GOARCH == "arm" || runtime.GOOS != "windows" {
+	if runtime.GOARCH == "arm" || (runtime.GOOS != "windows" && runtime.GOOS != "linux") {
 		SkipDownload()
 	}
 }
@@ -30,14 +32,21 @@ func Dest(value string) {
 	dest = value
 }
 
-func createBinWrapper() *binwrapper.BinWrapper {
+func createBinWrapper(binaryName string) *binwrapper.BinWrapper {
 	b := binwrapper.NewBinWrapper().AutoExe()
 
 	if !skipDownload {
-		b.Src(
-			binwrapper.NewSrc().
-				URL("https://mozjpeg.codelove.de/bin/mozjpeg_3.1_x86.zip").
-				Os("win32"))
+		if runtime.GOOS == "windows" {
+			b.Src(
+				binwrapper.NewSrc().
+					URL("https://mozjpeg.codelove.de/bin/mozjpeg_3.1_x86.zip").
+					Os("win32"))
+		} else if runtime.GOOS == "linux" {
+			b.Src(
+				binwrapper.NewSrc().ExecPath(fmt.Sprintf("./bin/linux/%s", binaryName)).
+					Os("linux"))
+			return b
+		}
 	}
 
 	return b.Strip(2).Dest(dest)

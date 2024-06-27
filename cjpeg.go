@@ -3,9 +3,10 @@ package mozjpegbin
 import (
 	"errors"
 	"fmt"
-	"github.com/nickalie/go-binwrapper"
 	"image"
 	"io"
+
+	"github.com/nickalie/go-binwrapper"
 )
 
 // CJpeg wraps cjpeg tool from mozjpeg
@@ -23,10 +24,10 @@ type CJpeg struct {
 // NewCJpeg creates new CJpeg instance
 func NewCJpeg() *CJpeg {
 	bin := &CJpeg{
-		BinWrapper: createBinWrapper(),
+		BinWrapper: createBinWrapper("cjpeg"),
 		quality:    -1,
 	}
-	bin.ExecPath("cjpeg")
+	// bin.ExecPath("cjpeg")
 
 	return bin
 }
