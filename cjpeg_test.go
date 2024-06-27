@@ -126,6 +126,8 @@ func TestCJpegVersion(t *testing.T) {
 	v, err := mozjpegbin.NewCJpeg().Version()
 	assert.Nil(t, err)
 	assert.NotEmpty(t, v)
+
+	t.Logf("version: %s\n", v)
 }
 
 func validateJpg(t *testing.T) {
