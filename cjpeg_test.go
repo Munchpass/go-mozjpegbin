@@ -1,15 +1,17 @@
-package mozjpegbin
+package mozjpegbin_test
 
 import (
-	"net/http"
-	"os"
-	"io"
-	"github.com/stretchr/testify/assert"
-	"testing"
-	"image/jpeg"
 	"fmt"
 	"image"
 	"image/color"
+	"image/jpeg"
+	"io"
+	"net/http"
+	"os"
+	"testing"
+
+	"github.com/Munchpass/go-mozjpegbin"
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -46,7 +48,7 @@ func downloadFile(url, target string) {
 }
 
 func TestEncodeImage(t *testing.T) {
-	c := NewCJpeg()
+	c := mozjpegbin.NewCJpeg()
 	f, err := os.Open("source.jpg")
 	assert.Nil(t, err)
 	img, err := jpeg.Decode(f)
@@ -76,7 +78,7 @@ func TestEncodeImage2(t *testing.T) {
 		}
 	}
 
-	c := NewCJpeg()
+	c := mozjpegbin.NewCJpeg()
 	c.InputImage(img)
 	c.OutputFile("target.jpg")
 	err := c.Run()
@@ -85,7 +87,7 @@ func TestEncodeImage2(t *testing.T) {
 }
 
 func TestEncodeReader(t *testing.T) {
-	c := NewCJpeg()
+	c := mozjpegbin.NewCJpeg()
 	f, err := os.Open("source.jpg")
 	assert.Nil(t, err)
 	c.Input(f)
@@ -96,7 +98,7 @@ func TestEncodeReader(t *testing.T) {
 }
 
 func TestEncodeFile(t *testing.T) {
-	c := NewCJpeg()
+	c := mozjpegbin.NewCJpeg()
 	c.Quality(100)
 	c.Optimize(true)
 	c.InputFile("source.jpg")
@@ -111,7 +113,7 @@ func TestEncodeWriter(t *testing.T) {
 	assert.Nil(t, err)
 	defer f.Close()
 
-	c := NewCJpeg()
+	c := mozjpegbin.NewCJpeg()
 	c.InputFile("source.jpg")
 	c.Output(f)
 	err = c.Run()
@@ -121,7 +123,7 @@ func TestEncodeWriter(t *testing.T) {
 }
 
 func TestCJpegVersion(t *testing.T) {
-	v, err := NewCJpeg().Version()
+	v, err := mozjpegbin.NewCJpeg().Version()
 	assert.Nil(t, err)
 	assert.NotEmpty(t, v)
 }

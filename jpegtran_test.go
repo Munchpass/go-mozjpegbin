@@ -1,13 +1,15 @@
-package mozjpegbin
+package mozjpegbin_test
 
 import (
 	"os"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/Munchpass/go-mozjpegbin"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestJpegTranReader(t *testing.T) {
-	c := NewJpegTran()
+	c := mozjpegbin.NewJpegTran()
 	f, err := os.Open("source.jpg")
 	assert.Nil(t, err)
 	c.Input(f)
@@ -18,7 +20,7 @@ func TestJpegTranReader(t *testing.T) {
 }
 
 func TestJpegTranFile(t *testing.T) {
-	c := NewJpegTran()
+	c := mozjpegbin.NewJpegTran()
 	c.InputFile("source.jpg")
 	c.OutputFile("target.jpg")
 	err := c.Run()
@@ -27,7 +29,7 @@ func TestJpegTranFile(t *testing.T) {
 }
 
 func TestJpegTranCrop(t *testing.T) {
-	c := NewJpegTran()
+	c := mozjpegbin.NewJpegTran()
 	c.Crop(500, 500, 100, 100)
 	c.InputFile("source.jpg")
 	c.OutputFile("target.jpg")
@@ -40,7 +42,7 @@ func TestJpegTranWriter(t *testing.T) {
 	assert.Nil(t, err)
 	defer f.Close()
 
-	c := NewJpegTran()
+	c := mozjpegbin.NewJpegTran()
 	c.InputFile("source.jpg")
 	c.Output(f)
 	err = c.Run()
@@ -50,7 +52,7 @@ func TestJpegTranWriter(t *testing.T) {
 }
 
 func TestJpegTranVersion(t *testing.T) {
-	v, err := NewJpegTran().Version()
+	v, err := mozjpegbin.NewJpegTran().Version()
 	assert.Nil(t, err)
 	assert.NotZero(t, v)
 }
