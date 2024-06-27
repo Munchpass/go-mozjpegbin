@@ -24,8 +24,14 @@ type CJpeg struct {
 
 // NewCJpeg creates new CJpeg instance
 func NewCJpeg() *CJpeg {
+	binWrapper, err := createBinWrapper("cjpeg")
+	if err != nil {
+		// TODO: this is jank, please return this lol
+		fmt.Println("WARNING: ", err)
+	}
+
 	bin := &CJpeg{
-		BinWrapper: createBinWrapper("cjpeg"),
+		BinWrapper: binWrapper,
 		quality:    -1,
 	}
 

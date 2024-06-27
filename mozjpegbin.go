@@ -16,7 +16,8 @@ var skipDownload bool
 var dest = "vendor/mozjpeg"
 
 func init() {
-	if runtime.GOARCH == "arm" || (runtime.GOOS != "windows" && runtime.GOOS != "linux") {
+	if runtime.GOARCH == "arm" ||
+		(runtime.GOOS != "windows" && runtime.GOOS != "linux" && runtime.GOOS != "darwin") {
 		SkipDownload()
 	}
 }
@@ -32,24 +33,34 @@ func Dest(value string) {
 	dest = value
 }
 
-func createBinWrapper(binaryName string) *binwrapper.BinWrapper {
+func createBinWrapper(binaryName string) (*binwrapper.BinWrapper, error) {
 	b := binwrapper.NewBinWrapper().AutoExe()
 
 	if !skipDownload {
-		if runtime.GOOS == "windows" {
+		switch runtime.GOOS {
+		case "windows":
+			// TODO: convert this to use the pre-built windows version
 			b.Src(
 				binwrapper.NewSrc().
 					URL("https://mozjpeg.codelove.de/bin/mozjpeg_3.1_x86.zip").
 					Os("win32"))
-		} else if runtime.GOOS == "linux" {
+			return b.Strip(2).Dest(dest), nil
+		case "linux":
 			b.Src(
 				binwrapper.NewSrc().ExecPath(fmt.Sprintf("./bin/linux/%s", binaryName)).
 					Os("linux"))
-			return b
+			return b, nil
+		case "darwin":
+			b.Src(
+				binwrapper.NewSrc().ExecPath(fmt.Sprintf("./bin/macos/%s", binaryName)).
+					Os("darwin"))
+			return b, nil
+		default:
+			return nil, fmt.Errorf("unsupported OS %s", runtime.GOOS)
 		}
 	}
 
-	return b.Strip(2).Dest(dest)
+	return b.Strip(2).Dest(dest), nil
 }
 
 func createReaderFromImage(img image.Image) (io.Reader, error) {

@@ -31,8 +31,14 @@ type JpegTran struct {
 
 // NewJpegTran creates new JpegTran instance
 func NewJpegTran() *JpegTran {
+	binWrapper, err := createBinWrapper("jpegtran")
+	if err != nil {
+		// TODO: this is jank, please return this lol
+		fmt.Println("WARNING: ", err)
+	}
+
 	bin := &JpegTran{
-		BinWrapper: createBinWrapper("jpegtran"),
+		BinWrapper: binWrapper,
 		copy:       "none",
 		optimize:   true,
 	}
@@ -40,6 +46,7 @@ func NewJpegTran() *JpegTran {
 	if runtime.GOOS == "windows" {
 		bin.ExecPath("jpegtran")
 	}
+
 	return bin
 }
 
