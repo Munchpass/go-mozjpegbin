@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"runtime"
 
-	"github.com/nickalie/go-binwrapper"
+	"github.com/Munchpass/go-mozjpegbin/embedbinwrapper"
 )
 
 // CJpeg wraps cjpeg tool from mozjpeg
 type CJpeg struct {
-	*binwrapper.BinWrapper
+	BinWrapper *embedbinwrapper.EmbedBinWrapper
 	inputFile  string
 	inputImage image.Image
 	input      io.Reader
@@ -23,11 +22,10 @@ type CJpeg struct {
 }
 
 // NewCJpeg creates new CJpeg instance
-func NewCJpeg() *CJpeg {
+func NewCJpeg() (*CJpeg, error) {
 	binWrapper, err := createBinWrapper("cjpeg")
 	if err != nil {
-		// TODO: this is jank, please return this lol
-		fmt.Println("WARNING: ", err)
+		return nil, fmt.Errorf("failed to create bin wrapper: %v", err)
 	}
 
 	bin := &CJpeg{
@@ -35,11 +33,7 @@ func NewCJpeg() *CJpeg {
 		quality:    -1,
 	}
 
-	if runtime.GOOS == "windows" {
-		bin.ExecPath("cjpeg")
-	}
-
-	return bin
+	return bin, nil
 }
 
 // InputFile sets image file to convert.
@@ -111,11 +105,11 @@ func (c *CJpeg) Run() error {
 	defer c.BinWrapper.Reset()
 
 	if c.quality > -1 {
-		c.Arg("-quality", fmt.Sprintf("%d", c.quality))
+		c.BinWrapper.Arg("-quality", fmt.Sprintf("%d", c.quality))
 	}
 
 	if c.optimize {
-		c.Arg("-optimize")
+		c.BinWrapper.Arg("-optimize")
 	}
 
 	output, err := c.getOutput()
@@ -125,7 +119,7 @@ func (c *CJpeg) Run() error {
 	}
 
 	if output != "" {
-		c.Arg("-outfile", output)
+		c.BinWrapper.Arg("-outfile", output)
 	}
 
 	err = c.setInput()
@@ -135,13 +129,13 @@ func (c *CJpeg) Run() error {
 	}
 
 	if c.output != nil {
-		c.SetStdOut(c.output)
+		c.BinWrapper.SetStdOut(c.output)
 	}
 
 	err = c.BinWrapper.Run()
 
 	if err != nil {
-		return errors.New(err.Error() + ". " + string(c.StdErr()))
+		return errors.New(err.Error() + ". " + string(c.BinWrapper.StdErr()))
 	}
 
 	return nil
@@ -161,7 +155,7 @@ func (c *CJpeg) Reset() *CJpeg {
 
 func (c *CJpeg) setInput() error {
 	if c.input != nil {
-		c.StdIn(c.input)
+		c.BinWrapper.StdIn(c.input)
 	} else if c.inputImage != nil {
 		r, err := createReaderFromImage(c.inputImage)
 
@@ -169,9 +163,9 @@ func (c *CJpeg) setInput() error {
 			return err
 		}
 
-		c.StdIn(r)
+		c.BinWrapper.StdIn(r)
 	} else if c.inputFile != "" {
-		c.Arg(c.inputFile)
+		c.BinWrapper.Arg(c.inputFile)
 	} else {
 		return errors.New("undefined input")
 	}

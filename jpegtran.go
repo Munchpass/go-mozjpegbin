@@ -4,9 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"runtime"
 
-	"github.com/nickalie/go-binwrapper"
+	"github.com/Munchpass/go-mozjpegbin/embedbinwrapper"
 )
 
 type cropInfo struct {
@@ -18,7 +17,7 @@ type cropInfo struct {
 
 // JpegTran wraps jpegtran tool from mozjpeg
 type JpegTran struct {
-	*binwrapper.BinWrapper
+	BinWrapper  *embedbinwrapper.EmbedBinWrapper
 	optimize    bool
 	progressive bool
 	crop        *cropInfo
@@ -30,11 +29,10 @@ type JpegTran struct {
 }
 
 // NewJpegTran creates new JpegTran instance
-func NewJpegTran() *JpegTran {
+func NewJpegTran() (*JpegTran, error) {
 	binWrapper, err := createBinWrapper("jpegtran")
 	if err != nil {
-		// TODO: this is jank, please return this lol
-		fmt.Println("WARNING: ", err)
+		return nil, fmt.Errorf("failed to create bin wrapper: %v", err)
 	}
 
 	bin := &JpegTran{
@@ -43,11 +41,7 @@ func NewJpegTran() *JpegTran {
 		optimize:   true,
 	}
 
-	if runtime.GOOS == "windows" {
-		bin.ExecPath("jpegtran")
-	}
-
-	return bin
+	return bin, nil
 }
 
 // Optimize perform optimization of entropy encoding parameters
@@ -123,18 +117,19 @@ func (c *JpegTran) Run() error {
 	defer c.BinWrapper.Reset()
 
 	if c.optimize {
-		c.Arg("-optimize")
+		c.BinWrapper.Arg("-optimize")
 	}
 
 	if c.progressive {
-		c.Arg("-progressive")
+		c.BinWrapper.Arg("-progressive")
 	}
 
 	if c.crop != nil {
-		c.Arg("-crop", fmt.Sprintf("%dx%d+%d+%d", c.crop.width, c.crop.height, c.crop.x, c.crop.y))
+		c.BinWrapper.Arg("-crop",
+			fmt.Sprintf("%dx%d+%d+%d", c.crop.width, c.crop.height, c.crop.x, c.crop.y))
 	}
 
-	c.Arg("-copy", c.copy)
+	c.BinWrapper.Arg("-copy", c.copy)
 
 	output, err := c.getOutput()
 
@@ -143,7 +138,7 @@ func (c *JpegTran) Run() error {
 	}
 
 	if output != "" {
-		c.Arg("-outfile", output)
+		c.BinWrapper.Arg("-outfile", output)
 	}
 
 	err = c.setInput()
@@ -153,13 +148,13 @@ func (c *JpegTran) Run() error {
 	}
 
 	if c.output != nil {
-		c.SetStdOut(c.output)
+		c.BinWrapper.SetStdOut(c.output)
 	}
 
 	err = c.BinWrapper.Run()
 
 	if err != nil {
-		return errors.New(err.Error() + ". " + string(c.StdErr()))
+		return errors.New(err.Error() + ". " + string(c.BinWrapper.StdErr()))
 	}
 
 	return nil
@@ -181,9 +176,9 @@ func (c *JpegTran) Reset() *JpegTran {
 
 func (c *JpegTran) setInput() error {
 	if c.input != nil {
-		c.StdIn(c.input)
+		c.BinWrapper.StdIn(c.input)
 	} else if c.inputFile != "" {
-		c.Arg(c.inputFile)
+		c.BinWrapper.Arg(c.inputFile)
 	} else {
 		return errors.New("undefined input")
 	}

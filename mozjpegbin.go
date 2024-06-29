@@ -2,65 +2,52 @@ package mozjpegbin
 
 import (
 	"bytes"
+	"embed"
 	"fmt"
 	"image"
 	"image/jpeg"
 	"io"
+	"path/filepath"
 	"runtime"
 	"strings"
 
-	"github.com/nickalie/go-binwrapper"
+	"github.com/Munchpass/go-mozjpegbin/embedbinwrapper"
 )
 
-var skipDownload bool
-var dest = "vendor/mozjpeg"
+//go:embed bin/*
+var binariesFs embed.FS
 
-func init() {
-	if runtime.GOARCH == "arm" ||
-		(runtime.GOOS != "windows" && runtime.GOOS != "linux" && runtime.GOOS != "darwin") {
-		SkipDownload()
-	}
-}
-
-// SkipDownload skips binary download.
-func SkipDownload() {
-	skipDownload = true
-	dest = ""
-}
-
-// Dest sets directory to download mozjpeg binaries or where to look for them if SkipDownload is used. Default is "vendor/mozjpeg"
-func Dest(value string) {
-	dest = value
-}
-
-func createBinWrapper(binaryName string) (*binwrapper.BinWrapper, error) {
-	b := binwrapper.NewBinWrapper().AutoExe()
-
-	if !skipDownload {
-		switch runtime.GOOS {
-		case "windows":
-			// TODO: convert this to use the pre-built windows version
-			b.Src(
-				binwrapper.NewSrc().
-					URL("https://mozjpeg.codelove.de/bin/mozjpeg_3.1_x86.zip").
-					Os("win32"))
-			return b.Strip(2).Dest(dest), nil
-		case "linux":
-			b.Src(
-				binwrapper.NewSrc().ExecPath(fmt.Sprintf("./bin/linux/%s", binaryName)).
-					Os("linux"))
-			return b, nil
-		case "darwin":
-			b.Src(
-				binwrapper.NewSrc().ExecPath(fmt.Sprintf("./bin/macos/%s", binaryName)).
-					Os("darwin"))
-			return b, nil
-		default:
-			return nil, fmt.Errorf("unsupported OS %s", runtime.GOOS)
+func createBinWrapper(binaryName string) (*embedbinwrapper.EmbedBinWrapper, error) {
+	b := embedbinwrapper.NewExecutableBinWrapper()
+	switch runtime.GOOS {
+	case "windows":
+		binPath := fmt.Sprintf("bin/windows/%s", binaryName)
+		ext := strings.ToLower(filepath.Ext(binPath))
+		if ext != ".exe" {
+			binPath += ".exe"
 		}
-	}
 
-	return b.Strip(2).Dest(dest), nil
+		binary, err := binariesFs.ReadFile(binPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read embed binary: %s", err)
+		}
+		return b.Src(embedbinwrapper.NewSrc().Bin(binary).Os("win32")), nil
+	case "linux":
+		binary, err := binariesFs.ReadFile(fmt.Sprintf("bin/linux/%s", binaryName))
+		if err != nil {
+			return nil, fmt.Errorf("failed to read embed binary: %s", err)
+		}
+		return b.Src(embedbinwrapper.NewSrc().Bin(binary).Os("linux")), nil
+
+	case "darwin":
+		binary, err := binariesFs.ReadFile(fmt.Sprintf("bin/darwin/%s", binaryName))
+		if err != nil {
+			return nil, fmt.Errorf("failed to read embed binary: %s", err)
+		}
+		return b.Src(embedbinwrapper.NewSrc().Bin(binary).Os("darwin")), nil
+	default:
+		return nil, fmt.Errorf("unsupported OS %s", runtime.GOOS)
+	}
 }
 
 func createReaderFromImage(img image.Image) (io.Reader, error) {
@@ -69,7 +56,7 @@ func createReaderFromImage(img image.Image) (io.Reader, error) {
 	return &buffer, err
 }
 
-func version(b *binwrapper.BinWrapper) (string, error) {
+func version(b *embedbinwrapper.EmbedBinWrapper) (string, error) {
 	b.Reset()
 	err := b.Run("-version")
 

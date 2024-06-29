@@ -1,6 +1,7 @@
 package mozjpegbin
 
 import (
+	"fmt"
 	"image"
 	"io"
 )
@@ -13,7 +14,10 @@ type Options struct {
 
 // Encode encodes image.Image into jpeg using cjpeg.
 func Encode(w io.Writer, m image.Image, o *Options) error {
-	cjpeg := NewCJpeg()
+	cjpeg, err := NewCJpeg()
+	if err != nil {
+		return fmt.Errorf("NewCJpeg failed: %v", err)
+	}
 
 	if o != nil {
 		cjpeg.Quality(o.Quality)

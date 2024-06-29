@@ -48,7 +48,11 @@ func downloadFile(url, target string) {
 }
 
 func TestEncodeImage(t *testing.T) {
-	c := mozjpegbin.NewCJpeg()
+	c, err := mozjpegbin.NewCJpeg()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
 	f, err := os.Open("source.jpg")
 	assert.Nil(t, err)
 	img, err := jpeg.Decode(f)
@@ -78,53 +82,83 @@ func TestEncodeImage2(t *testing.T) {
 		}
 	}
 
-	c := mozjpegbin.NewCJpeg()
+	c, err := mozjpegbin.NewCJpeg()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	c.InputImage(img)
 	c.OutputFile("target.jpg")
-	err := c.Run()
-	assert.Nil(t, err)
+	err = c.Run()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	validateJpgImage(t, img)
 }
 
 func TestEncodeReader(t *testing.T) {
-	c := mozjpegbin.NewCJpeg()
+	c, err := mozjpegbin.NewCJpeg()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	f, err := os.Open("source.jpg")
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	c.Input(f)
 	c.OutputFile("target.jpg")
 	err = c.Run()
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	validateJpg(t)
 }
 
 func TestEncodeFile(t *testing.T) {
-	c := mozjpegbin.NewCJpeg()
+	c, err := mozjpegbin.NewCJpeg()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	c.Quality(100)
 	c.Optimize(true)
 	c.InputFile("source.jpg")
 	c.OutputFile("target.jpg")
-	err := c.Run()
-	assert.Nil(t, err)
+	err = c.Run()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	validateJpg(t)
 }
 
 func TestEncodeWriter(t *testing.T) {
 	f, err := os.Create("target.jpg")
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	defer f.Close()
 
-	c := mozjpegbin.NewCJpeg()
+	c, err := mozjpegbin.NewCJpeg()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	c.InputFile("source.jpg")
 	c.Output(f)
 	err = c.Run()
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	f.Close()
 	validateJpg(t)
 }
 
 func TestCJpegVersion(t *testing.T) {
-	v, err := mozjpegbin.NewCJpeg().Version()
-	assert.Nil(t, err)
+	c, err := mozjpegbin.NewCJpeg()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+	v, err := c.Version()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	assert.NotEmpty(t, v)
 
 	t.Logf("version: %s\n", v)
@@ -133,18 +167,26 @@ func TestCJpegVersion(t *testing.T) {
 func validateJpg(t *testing.T) {
 	//defer os.Remove("target.jpg")
 	fSource, err := os.Open("source.jpg")
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	imgSource, err := jpeg.Decode(fSource)
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	validateJpgImage(t, imgSource)
 }
 
 func validateJpgImage(t *testing.T, imgSource image.Image) {
 	//defer os.Remove("target.jpg")
 	fTarget, err := os.Open("target.jpg")
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	defer fTarget.Close()
 	imgTarget, err := jpeg.Decode(fTarget)
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	assert.Equal(t, imgSource.Bounds(), imgTarget.Bounds())
 }

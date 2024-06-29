@@ -9,50 +9,81 @@ import (
 )
 
 func TestJpegTranReader(t *testing.T) {
-	c := mozjpegbin.NewJpegTran()
+	c, err := mozjpegbin.NewJpegTran()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	f, err := os.Open("source.jpg")
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	c.Input(f)
 	c.OutputFile("target.jpg")
 	err = c.Run()
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	validateJpg(t)
 }
 
 func TestJpegTranFile(t *testing.T) {
-	c := mozjpegbin.NewJpegTran()
+	c, err := mozjpegbin.NewJpegTran()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	c.InputFile("source.jpg")
 	c.OutputFile("target.jpg")
-	err := c.Run()
-	assert.Nil(t, err)
+	err = c.Run()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	validateJpg(t)
 }
 
 func TestJpegTranCrop(t *testing.T) {
-	c := mozjpegbin.NewJpegTran()
+	c, err := mozjpegbin.NewJpegTran()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	c.Crop(500, 500, 100, 100)
 	c.InputFile("source.jpg")
 	c.OutputFile("target.jpg")
-	err := c.Run()
-	assert.Nil(t, err)
+	err = c.Run()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 }
 
 func TestJpegTranWriter(t *testing.T) {
 	f, err := os.Create("target.jpg")
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	defer f.Close()
 
-	c := mozjpegbin.NewJpegTran()
+	c, err := mozjpegbin.NewJpegTran()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	c.InputFile("source.jpg")
 	c.Output(f)
 	err = c.Run()
-	assert.Nil(t, err)
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	f.Close()
 	validateJpg(t)
 }
 
 func TestJpegTranVersion(t *testing.T) {
-	v, err := mozjpegbin.NewJpegTran().Version()
-	assert.Nil(t, err)
+	c, err := mozjpegbin.NewJpegTran()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
+
+	v, err := c.Version()
+	if !assert.Nil(t, err) {
+		t.FailNow()
+	}
 	assert.NotZero(t, v)
 }
